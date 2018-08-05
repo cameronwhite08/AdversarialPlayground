@@ -4,42 +4,14 @@ using System.Linq;
 
 namespace MiniMax_TicTacToe_Lib
 {
-    public enum PieceType : sbyte{
+    public enum PieceType : sbyte
+    {
         X, O, Empty
     }
 
-    class MainClass
+    public class TicTacToeLib
     {
-        //BLUE = 1 
-        //RED = -1 
-        //EMPTY = 0
-        static PieceType Player, Oponnent;
-        const int AIDepth = 6;
-
-        public static void Main(string[] args)
-        {
-            Console.WriteLine("Welcome to Tic Tac Toe!");
-
-            Console.WriteLine("Chose a game option:");
-            Console.WriteLine("1)Human vs Human");
-            Console.WriteLine("2)Human vs Computer");
-            var gameMode = int.Parse(Console.ReadLine());
-
-            Console.WriteLine("Enter the piece you want to play. \"x\" or \"o\"");
-            var pieceC = Console.ReadLine();
-
-            Player = pieceC.ToLower().Equals("x") ? PieceType.X : PieceType.O;
-            Oponnent = (Player == PieceType.O) ? PieceType.X : PieceType.O;
-
-            if (gameMode == 1)
-            {
-                HumanvsHuman(Player);
-                return;
-            }
-            HumanVsComputer();
-        }
-
-        public static void HumanvsHuman(PieceType startPiece)
+        public void HumanvsHuman(PieceType startPiece)
         {
             var currentPiece = startPiece;
             var board = CreateEmptyBoard();
@@ -72,7 +44,7 @@ namespace MiniMax_TicTacToe_Lib
             }
         }
 
-        public static void HumanVsComputer()
+        public void HumanVsComputer(PieceType player, int depth)
         {
             var board = CreateEmptyBoard();
             PrintBoard(board);
@@ -87,7 +59,7 @@ namespace MiniMax_TicTacToe_Lib
                 row = int.Parse(Console.ReadLine());
 
 
-                board[row][column] = Player;
+                board[row][column] = player;
 
                 PrintBoard(board);
 
@@ -98,7 +70,7 @@ namespace MiniMax_TicTacToe_Lib
                 }
 
                 //make pc move
-                board = AI(board, Player, AIDepth);
+                board = AI(board, player, depth);
                 Console.WriteLine("AI Move:");
                 PrintBoard(board);
 
@@ -111,29 +83,29 @@ namespace MiniMax_TicTacToe_Lib
             }
         }
 
-        static bool CheckWin(PieceType[][] board)
+        public bool CheckWin(PieceType[][] board)
         {
-            var top = board[0][0] == board[0][1] && board[0][1] == board[0][2];
-            var middle = board[1][0] == board[1][1] && board[1][1] == board[1][2];
-            var bottom = board[2][0] == board[2][1] && board[2][1] == board[2][2];
+            var top = board[0][0] == board[0][1] && board[0][1] == board[0][2] && board[0][2] != PieceType.Empty;
+            var middle = board[1][0] == board[1][1] && board[1][1] == board[1][2] && board[1][2] != PieceType.Empty;
+            var bottom = board[2][0] == board[2][1] && board[2][1] == board[2][2] && board[2][2] != PieceType.Empty;
 
-            var left = board[0][0] == board[1][0] && board[1][0] == board[2][0];
-            var center = board[0][1] == board[1][1] && board[1][1] == board[2][1];
-            var right = board[0][2] == board[1][2] && board[1][2] == board[2][2];
+            var left = board[0][0] == board[1][0] && board[1][0] == board[2][0] && board[2][0] != PieceType.Empty;
+            var center = board[0][1] == board[1][1] && board[1][1] == board[2][1] && board[2][1] != PieceType.Empty;
+            var right = board[0][2] == board[1][2] && board[1][2] == board[2][2] && board[2][2] != PieceType.Empty;
 
-            var TLBRDiag = board[0][0] == board[1][1] && board[1][1] == board[2][2];
-            var BLTRDiag = board[2][0] == board[1][1] && board[1][1] == board[0][2];
+            var TLBRDiag = board[0][0] == board[1][1] && board[1][1] == board[2][2] && board[2][2] != PieceType.Empty;
+            var BLTRDiag = board[2][0] == board[1][1] && board[1][1] == board[0][2] && board[0][2] != PieceType.Empty;
 
             return top || middle || bottom || left || center || right || TLBRDiag || BLTRDiag;
         }
 
         #region Board Operations
-        static void PrintBoard(PieceType[][] board)
+        public void PrintBoard(PieceType[][] board)
         {
             //created to maintain default system console color
             Console.ForegroundColor = ConsoleColor.Black;
             Console.BackgroundColor = ConsoleColor.White;
-            for (int i = 0; i <board.Length; i++)
+            for (int i = 0; i < board.Length; i++)
             {
                 for (int j = 0; j < board[i].Length; j++)
                 {
@@ -156,7 +128,7 @@ namespace MiniMax_TicTacToe_Lib
             Console.WriteLine();
         }
 
-        static PieceType[][] CopyBoard(PieceType[][] board)
+        public PieceType[][] CopyBoard(PieceType[][] board)
         {
             var newBoard = new PieceType[board.Length][];
             for (int i = 0; i < board.Length; i++)
@@ -170,7 +142,7 @@ namespace MiniMax_TicTacToe_Lib
             return newBoard;
         }
 
-        static PieceType[][] CreateEmptyBoard()
+        public PieceType[][] CreateEmptyBoard()
         {
             var boardHeight = 3;
 
@@ -188,7 +160,7 @@ namespace MiniMax_TicTacToe_Lib
             return tempBoard;
         }
 
-        static Tuple<int,int>[] AvailableMoves(PieceType[][] board)
+        public Tuple<int, int>[] AvailableMoves(PieceType[][] board)
         {
             var available = new List<Tuple<int, int>>();
 
@@ -207,13 +179,14 @@ namespace MiniMax_TicTacToe_Lib
 
         #endregion
 
-        static int GradeState(Node state, PieceType piece, int depth)
+        public int GradeState(Node state, PieceType piece, int depth)
         {
             //if a win
-            if (CheckWin(state.Board)){
+            if (CheckWin(state.Board))
+            {
 
                 //only used by AI, so good score for player
-                if (Player == piece)
+                if (state.UpdatedPiece == piece)
                 {
                     return depth;
                 }
@@ -227,7 +200,7 @@ namespace MiniMax_TicTacToe_Lib
         }
 
         #region AI
-        static Node GenerateMoveTree(PieceType[][] board, PieceType piece, int depth)
+        public Node GenerateMoveTree(PieceType[][] board, PieceType piece, int depth)
         {
             var outNode = new Node(board, piece);
 
@@ -251,7 +224,7 @@ namespace MiniMax_TicTacToe_Lib
             return outNode;
         }
 
-        static int AlphaBetaMinMax(Node node, bool maxamizingPlayer, int depthScore, int alpha = int.MinValue, int beta = int.MaxValue)
+        public int AlphaBetaMinMax(Node node, bool maxamizingPlayer, int depthScore, int alpha = int.MinValue, int beta = int.MaxValue)
         {
             if (node.Children.Count == 0)
             {
@@ -290,7 +263,7 @@ namespace MiniMax_TicTacToe_Lib
 
         }
 
-        static PieceType[][] AI(PieceType[][] board, PieceType piece, int depth)
+        public PieceType[][] AI(PieceType[][] board, PieceType piece, int depth)
         {
             var tree = GenerateMoveTree(board, piece, depth);
             foreach (var child in tree.Children)

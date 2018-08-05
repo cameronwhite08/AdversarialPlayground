@@ -2,7 +2,7 @@
 
 namespace MiniMax_TicTacToe_Lib
 {
-    class Node
+    public class Node
     {
         public readonly PieceType UpdatedPiece;
 
