@@ -353,31 +353,4 @@ namespace MiniMax_TicTacToe_Lib
         }
         #endregion
     }
-
-    class Node
-    {
-        public readonly int UpdatedRow;
-        public readonly int UpdatedColumn;
-        public readonly sbyte UpdatedPiece;
-
-        public int Value;
-
-        public readonly sbyte[][] Board;
-        public int[] AvailableMoves;
-        public List<Node> Children;
-
-        public Node()
-        {
-            Value = -1;
-            Children = new List<Node>();
-        }
-
-        public Node(sbyte[][] _board, sbyte _piece, int _row, int _column) : this()
-        {
-            Board = _board;
-            UpdatedRow = _row;
-            UpdatedColumn = _column;
-            UpdatedPiece = _piece;
-        }
-    }
 }
