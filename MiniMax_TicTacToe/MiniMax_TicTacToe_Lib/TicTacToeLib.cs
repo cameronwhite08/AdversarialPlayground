@@ -122,8 +122,16 @@ namespace MiniMax_TicTacToe_Lib
                     }
                     Console.Write(" " + output);
                     Console.ForegroundColor = ConsoleColor.Black;
+                    if (j != board[i].Length-1)
+                    {
+                        Console.Write("|");
+                    }
                 }
                 Console.WriteLine();
+                if (i != board.Length - 1)
+                {
+                    Console.WriteLine("--------");
+                }
             }
             Console.WriteLine();
         }
