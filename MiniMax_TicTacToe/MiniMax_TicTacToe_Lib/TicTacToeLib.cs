@@ -52,12 +52,10 @@ namespace MiniMax_TicTacToe_Lib
             var row = 0;
             while (column != -1)
             {
-                Console.WriteLine("Enter the column you want to drop a piece");
-                column = int.Parse(Console.ReadLine());
-
                 Console.WriteLine("Enter the row you want to drop a piece");
                 row = int.Parse(Console.ReadLine());
-
+                Console.WriteLine("Enter the column you want to drop a piece");
+                column = int.Parse(Console.ReadLine());
 
                 board[row][column] = player;
 
