@@ -4,12 +4,11 @@ namespace MiniMax_TicTacToe_Lib
 {
     class Node
     {
-        public readonly sbyte UpdatedPiece;
+        public readonly PieceType UpdatedPiece;
 
         public int Value;
 
-        public readonly sbyte[][] Board;
-        public int[] AvailableMoves;
+        public readonly PieceType[][] Board;
         public List<Node> Children;
 
         public Node()
@@ -18,7 +17,7 @@ namespace MiniMax_TicTacToe_Lib
             Children = new List<Node>();
         }
 
-        public Node(sbyte[][] _board, sbyte _piece) : this()
+        public Node(PieceType[][] _board, PieceType _piece) : this()
         {
             Board = _board;
             UpdatedPiece = _piece;
