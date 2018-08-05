@@ -7,9 +7,6 @@ namespace MiniMax_TicTacToe_Lib
     class MainClass
     {
         //BLUE = 1 RED = -1 EMPTY = 0
-        static int boardWidth = 7;
-        static int boardHeight = 6;
-        static int winLength = 4;
         static sbyte Player;
         static sbyte Computer;
 
@@ -239,40 +236,6 @@ namespace MiniMax_TicTacToe_Lib
             return tempBoard;
         }
 
-        static Tuple<int, int> DropPiece(sbyte[][] board, int column, sbyte piece)
-        {
-            var index = -1;
-
-            for (int i = board.Length - 1; i > -1; i--)
-            {
-                if (board[i][column].Equals(0))
-                {
-                    index = i;
-                }
-            }
-            if (index != -1)
-            {
-                board[index][column] = piece;
-                return new Tuple<int, int>(index, column);
-            }
-            return null;
-        }
-
-        static int[] AvailableMoves(sbyte[][] board)
-        {
-            var availableColumns = new List<int>();
-
-            for (int i = 0; i < board[0].Length; i++)
-            {
-                //only need to look at top of columns in board
-                //if they're empty add it as available
-                if (board[board.Length - 1][i] == 0)
-                {
-                    availableColumns.Add(i);
-                }
-            }
-            return availableColumns.ToArray();
-        }
 
         static bool IsEmpty(sbyte[][] board)
         {
@@ -290,7 +253,6 @@ namespace MiniMax_TicTacToe_Lib
 
         #endregion
 
-        #region Grading
         static int GradeState(Node state, int depth)
         {
             //if a win
@@ -304,195 +266,6 @@ namespace MiniMax_TicTacToe_Lib
             //TODO TEMPORARY TODO
             return 0;
         }
-
-        #region Chains
-
-        static List<ChainElement[]> GetChainsNoOverlap(Node state)
-        {
-            //function to return chains? would not return overlaps
-            //number of 3 pairs - pairs you cant get to
-            //number of 2 pairs - pairs you cant get to - actual 3 pairs
-
-            var allChains = new List<ChainElement[]>();
-            //increment over available columns
-            if (state.AvailableMoves == null)
-                return allChains;
-            for (int i = 0; i < state.AvailableMoves.Length; i++)
-            {
-                var index = -1;
-                //get index of topmost piece in current column
-                for (int j = 0; j < state.Board.Length; j++)
-                {
-                    if (state.Board[j][state.AvailableMoves[i]] != 0)
-                    {
-                        index = j;
-                    }
-                }
-                //ignore empty column
-                if (index != -1)
-                {
-                    //get chains starting from current position
-                    var chains = GetAllChains(state.Board, index, state.AvailableMoves[i]);
-                    //add chains to running chain list for all top pieces
-                    allChains.AddRange(chains);
-                }
-            }
-            //reduce running list of chains for top pieces
-            var removeList = new List<ChainElement[]>();
-            foreach (var chain in allChains)
-            {
-                //dont worry about this chain if ready for removal
-                if (removeList.Contains(chain))
-                {
-                    continue;
-                }
-                //these are all the chains again, for comparrison to the one in the outer loop
-                foreach (var innerChain in allChains)
-                {
-                    //skip if the same chain, or a chain smaller than the current
-                    if (chain != innerChain && innerChain.Length >= chain.Length)
-                    {
-                        //bool gets the intersection (same elements in both) and checks the count against the chain count
-                        var sameElements = chain.Intersect(innerChain).Count() == chain.Count();
-                        //if the elements are the same the chain is a duplicate (ex a 3 chain is 2-2 chains). We're removing the subchains
-                        if (sameElements)
-                        {
-                            removeList.Add(chain);
-                        }
-                    }
-                }
-            }
-            //remove chains from the allchains list if they are in the removeList
-            allChains.RemoveAll((obj) =>
-            {
-                return removeList.Contains(obj);
-            });
-
-            return allChains;
-        }
-
-        static ChainElement[] GetChain(sbyte[][] board, int _row, int _column, int rowDelta, int colDelta)
-        {
-            var chain = new List<ChainElement>();
-            var piece = board[_row][_column];
-            //not worried about 0 chains
-            if (piece == 0)
-            {
-                return null;
-            }
-            var row = _row;
-            var column = _column;
-            //while inside the bounds of the current board
-            while (row < boardHeight && row > -1 && column < boardWidth && column > -1)
-            {
-                //if the desired player piece, add it to the chain
-                if (board[row][column].Equals(piece))
-                {
-                    chain.Add(new ChainElement(board[row][column], (sbyte)row, (sbyte)column));
-                }
-                //if not return the current chain
-                else
-                {
-                    return chain.ToArray();
-                }
-
-                row += rowDelta;
-                column += colDelta;
-            }
-            return chain.ToArray();
-        }
-
-        static List<ChainElement[]> GetAllChains(sbyte[][] board, int row, int column)
-        {
-            var allChains = new List<ChainElement[]>();
-            //checks north
-            allChains.Add(GetChain(board, row, column, 1, 0));
-            //checks south
-            allChains.Add(GetChain(board, row, column, -1, 0));
-            //checks east
-            allChains.Add(GetChain(board, row, column, 0, 1));
-            //checks west
-            allChains.Add(GetChain(board, row, column, 0, -1));
-            //chacks ne
-            allChains.Add(GetChain(board, row, column, 1, 1));
-            //chacks nw
-            allChains.Add(GetChain(board, row, column, 1, -1));
-            //chacks sw
-            allChains.Add(GetChain(board, row, column, -1, -1));
-            //chacks se
-            allChains.Add(GetChain(board, row, column, -1, 1));
-
-            return allChains;
-        }
-
-        static int BlockingMove(Node state, List<ChainElement[]> allChains)
-        {
-            var piece = state.Board[state.UpdatedRow][state.UpdatedColumn];
-            var oppositePiece = -piece;
-            foreach (var item in allChains)
-            {
-                //we're trying to block the opponents chain
-                if (item[0].Piece != oppositePiece || item.Length < 2)
-                    continue;
-                var changeRow = item[0].PieceIndices[0] - item[1].PieceIndices[0];
-                var changeColumn = item[0].PieceIndices[1] - item[1].PieceIndices[1];
-
-                var outerLeftRow = item[0].PieceIndices[0] - changeRow;
-                var outerLeftColumn = item[0].PieceIndices[1] - changeColumn;
-
-                var outerRightRow = item[item.Length - 1].PieceIndices[0] + changeRow;
-                var outerRightColumn = item[item.Length - 1].PieceIndices[1] + changeColumn;
-
-                if (state.UpdatedColumn == outerLeftColumn && state.UpdatedRow == outerLeftRow)
-                {
-                    return item.Length;
-                }
-                if (state.UpdatedColumn == outerRightColumn && state.UpdatedRow == outerRightRow)
-                {
-                    return item.Length;
-                }
-
-            }
-            return 0;
-        }
-
-        #endregion
-
-        static int OccupiedColumnsScore(Node state)
-        {
-            var colOccupiedScore = 0;
-            var col = state.UpdatedColumn;
-            //if col index on right side of board, add its distance from right edge to score
-            if (col > state.Board[0].Length / 2)
-            {
-                colOccupiedScore += state.Board[0].Length - col;
-            }
-            //on left side of board,  add distance from left edge to score
-            else
-            {
-                colOccupiedScore += col;
-            }
-
-            return colOccupiedScore;
-        }
-
-        static int BoardHeight(Node state)
-        {
-            for (int i = state.Board.Length - 1; i > -1; i--)
-            {
-                for (int j = 0; j < state.Board[i].Length; j++)
-                {
-                    if (state.Board[i][j] != 0)
-                    {
-                        //return the height, not the row index
-                        return i + 1;
-                    }
-                }
-            }
-
-            return 0;
-        }
-        #endregion
 
         #region AI
         static Node GenerateMoveTree(sbyte[][] board, sbyte piece, int row, int column, int depth)
@@ -579,17 +352,6 @@ namespace MiniMax_TicTacToe_Lib
             return tree.Children[index].Board;
         }
         #endregion
-    }
-
-    class ChainElement
-    {
-        public readonly sbyte Piece;
-        public readonly sbyte[] PieceIndices;
-        public ChainElement(sbyte piece, sbyte row, sbyte column)
-        {
-            Piece = piece;
-            PieceIndices = new sbyte[] { row, column };
-        }
     }
 
     class Node
