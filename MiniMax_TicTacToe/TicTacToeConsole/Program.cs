@@ -9,11 +9,11 @@ namespace TicTacToeConsole
         //RED = -1 
         //EMPTY = 0
         static PieceType Player, Oponnent;
-        const int AIDepth = 6;
+        const int AIDepth = 20;
 
         public static void Main(string[] args)
         {
-            var lib = new TicTacToeLib();
+            
 
             Console.WriteLine("Welcome to Tic Tac Toe!");
 
@@ -27,6 +27,8 @@ namespace TicTacToeConsole
 
             Player = pieceC.ToLower().Equals("x") ? PieceType.X : PieceType.O;
             Oponnent = (Player == PieceType.O) ? PieceType.X : PieceType.O;
+
+            var lib = new TicTacToeLib(Player);
 
             if (gameMode == 1)
             {

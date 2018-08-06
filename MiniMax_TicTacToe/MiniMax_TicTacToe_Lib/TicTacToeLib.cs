@@ -4,13 +4,19 @@ using System.Linq;
 
 namespace MiniMax_TicTacToe_Lib
 {
-    public enum PieceType : sbyte
-    {
-        X, O, Empty
-    }
+    public enum PieceType : sbyte { X, O, Empty }
 
     public class TicTacToeLib
     {
+        private readonly PieceType Player;
+
+        #region Constructor
+        public TicTacToeLib(PieceType player)
+        {
+            Player = player;
+        }
+        #endregion
+
         public void HumanvsHuman(PieceType startPiece)
         {
             var currentPiece = startPiece;
@@ -77,7 +83,6 @@ namespace MiniMax_TicTacToe_Lib
                     Console.WriteLine("The Pc Won!");
                     return;
                 }
-
             }
         }
 
@@ -100,6 +105,7 @@ namespace MiniMax_TicTacToe_Lib
         #region Board Operations
         public void PrintBoard(PieceType[][] board)
         {
+            Console.Clear();
             //created to maintain default system console color
             Console.ForegroundColor = ConsoleColor.Black;
             Console.BackgroundColor = ConsoleColor.White;
@@ -152,6 +158,15 @@ namespace MiniMax_TicTacToe_Lib
         {
             var boardHeight = 3;
 
+            var t = new PieceType[][] 
+            {
+                new PieceType[]{PieceType.Empty, PieceType.Empty, PieceType.X},
+                new PieceType[]{PieceType.X, PieceType.Empty, PieceType.Empty},
+                new PieceType[]{PieceType.X, PieceType.O, PieceType.O}
+            };
+
+            return t;
+
             var tempBoard = new PieceType[boardHeight][];
 
             for (int i = 0; i < boardHeight; i++)
@@ -192,12 +207,12 @@ namespace MiniMax_TicTacToe_Lib
             {
 
                 //only used by AI, so good score for player
-                if (state.UpdatedPiece == piece)
+                if (Player == piece)
                 {
-                    return depth;
+                    return 10; //depth;
                 }
                 //'bad' for pc win
-                return -depth;
+                return -10; //-depth;
             }
 
             //TODO TEMPORARY TODO
@@ -274,7 +289,7 @@ namespace MiniMax_TicTacToe_Lib
             var tree = GenerateMoveTree(board, piece, depth);
             foreach (var child in tree.Children)
             {
-                child.Value = AlphaBetaMinMax(child, false, depth);
+                child.Value = AlphaBetaMinMax(child, true, depth);
             }
 
             var maxScore = int.MinValue;
