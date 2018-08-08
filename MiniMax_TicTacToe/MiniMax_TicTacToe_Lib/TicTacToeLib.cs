@@ -158,15 +158,6 @@ namespace MiniMax_TicTacToe_Lib
         {
             var boardHeight = 3;
 
-            var t = new PieceType[][] 
-            {
-                new PieceType[]{PieceType.Empty, PieceType.Empty, PieceType.X},
-                new PieceType[]{PieceType.X, PieceType.Empty, PieceType.Empty},
-                new PieceType[]{PieceType.X, PieceType.O, PieceType.O}
-            };
-
-            return t;
-
             var tempBoard = new PieceType[boardHeight][];
 
             for (int i = 0; i < boardHeight; i++)
@@ -206,13 +197,13 @@ namespace MiniMax_TicTacToe_Lib
             if (CheckWin(state.Board))
             {
 
-                //only used by AI, so good score for player
+                //if the player is the winner the ai grades the state as a loss
                 if (Player == piece)
                 {
-                    return 10; //depth;
+                    return -10; //depth;
                 }
-                //'bad' for pc win
-                return -10; //-depth;
+                //if the ai is the winner the ai grades the state as a win
+                return 10; //-depth;
             }
 
             //TODO TEMPORARY TODO
@@ -289,7 +280,7 @@ namespace MiniMax_TicTacToe_Lib
             var tree = GenerateMoveTree(board, piece, depth);
             foreach (var child in tree.Children)
             {
-                child.Value = AlphaBetaMinMax(child, true, depth);
+                child.Value = AlphaBetaMinMax(child, false, depth);
             }
 
             var maxScore = int.MinValue;

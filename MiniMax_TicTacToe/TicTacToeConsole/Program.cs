@@ -36,6 +36,7 @@ namespace TicTacToeConsole
                 return;
             }
             lib.HumanVsComputer(Player, AIDepth);
+            Console.ReadLine();
         }
     }
 }
