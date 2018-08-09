@@ -282,13 +282,11 @@ namespace MiniMaxConnectR
         {
             //if a win
             if (IsWin(state.Board, Player, state.UpdatedRow, state.UpdatedColumn))
-                return -10;
+                return depth-10;
             //if a loss
             if (IsWin(state.Board, Computer, state.UpdatedRow, state.UpdatedColumn))
-                return 10;
-
-
-            //TODO TEMPORARY TODO
+                return 10-depth;
+            
             return 0;
         }
         
