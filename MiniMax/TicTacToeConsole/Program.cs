@@ -13,8 +13,6 @@ namespace TicTacToeConsole
 
         public static void Main(string[] args)
         {
-            
-
             Console.WriteLine("Welcome to Tic Tac Toe!");
 
             Console.WriteLine("Chose a game option:");
@@ -28,7 +26,7 @@ namespace TicTacToeConsole
             Player = pieceC.ToLower().Equals("x") ? PieceType.X : PieceType.O;
             Oponnent = (Player == PieceType.O) ? PieceType.X : PieceType.O;
 
-            var lib = new TicTacToeLib(Player);
+            var lib = new TicTacToeLib();
 
             if (gameMode == 1)
             {

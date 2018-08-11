@@ -8,14 +8,7 @@ namespace MiniMax_TicTacToe_Lib
 
     public class TicTacToeLib
     {
-        private readonly PieceType Player;
-
-        #region Constructor
-        public TicTacToeLib(PieceType player)
-        {
-            Player = player;
-        }
-        #endregion
+        private PieceType Player;
 
         public void HumanvsHuman(PieceType startPiece)
         {
@@ -52,6 +45,7 @@ namespace MiniMax_TicTacToe_Lib
 
         public void HumanVsComputer(PieceType player, int depth)
         {
+            Player = player;
             var board = CreateEmptyBoard();
             PrintBoard(board);
             var column = 0;
@@ -63,7 +57,7 @@ namespace MiniMax_TicTacToe_Lib
                 Console.WriteLine("Enter the column you want to drop a piece");
                 column = int.Parse(Console.ReadLine());
 
-                board[row][column] = player;
+                board[row][column] = Player;
 
                 PrintBoard(board);
 
@@ -74,7 +68,7 @@ namespace MiniMax_TicTacToe_Lib
                 }
 
                 //make pc move
-                board = AI(board, player, depth);
+                board = AI(board, depth);
                 Console.WriteLine("AI Move:");
                 PrintBoard(board);
 
@@ -275,9 +269,9 @@ namespace MiniMax_TicTacToe_Lib
 
         }
 
-        public PieceType[][] AI(PieceType[][] board, PieceType piece, int depth)
+        public PieceType[][] AI(PieceType[][] board, int depth)
         {
-            var tree = GenerateMoveTree(board, piece, depth);
+            var tree = GenerateMoveTree(board, Player, depth);
             foreach (var child in tree.Children)
             {
                 child.Value = AlphaBetaMinMax(child, false, depth);
