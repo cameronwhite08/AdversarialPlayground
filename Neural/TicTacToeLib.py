@@ -1,5 +1,6 @@
 from Constants import PieceType, bcolors
 from Node import Node
+import  random
 import os
 
 
@@ -54,9 +55,10 @@ class TicTacToeLib:
             if not self.board_has_moves(board):
                 print('Board Full, restarting..')
                 board = self.create_empty_board()
+                self.print_board(board)
                 continue
 
-            board = self.Ai(board, depth)
+            board = self.Ai(board, self.invert_piece(self.player), depth)
             print('Ai Move:')
             self.print_board(board)
 
@@ -67,6 +69,44 @@ class TicTacToeLib:
             if not self.board_has_moves(board):
                 print('Board Full, restarting..')
                 board = self.create_empty_board()
+                self.print_board(board)
+                continue
+
+    def ComputerVsComputer(self, player_piece, depth):
+        self.player = player_piece
+
+        board = self.create_empty_board()
+        self.print_board(board)
+
+        col = 0
+
+        while col != -1:
+            board = self.Ai(board, self.player, depth)
+            print('Ai 1 Move:')
+            self.print_board(board)
+
+            if self.check_win(board):
+                print('Ai 1 won!')
+                return
+
+            if not self.board_has_moves(board):
+                print('Board Full, restarting..')
+                board = self.create_empty_board()
+                self.print_board(board)
+                continue
+
+            board = self.Ai(board, self.invert_piece(self.player), depth)
+            print('Ai 2 Move:')
+            self.print_board(board)
+
+            if self.check_win(board):
+                print('Ai 2won!')
+                return
+
+            if not self.board_has_moves(board):
+                print('Board Full, restarting..')
+                board = self.create_empty_board()
+                self.print_board(board)
                 continue
 
     def invert_piece(self, piece):
@@ -81,7 +121,7 @@ class TicTacToeLib:
         center = board[0][1] == board[1][1] and board[1][1] == board[2][1] and board[2][1] != PieceType.Empty
         right = board[0][2] == board[1][2] and board[1][2] == board[2][2] and board[2][2] != PieceType.Empty
 
-        TLBRDiag = board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[0][2] != PieceType.Empty
+        TLBRDiag = board[0][0] == board[1][1] and board[1][1] == board[2][2] and board[2][2] != PieceType.Empty
         BLTRDiag = board[2][0] == board[1][1] and board[1][1] == board[0][2] and board[0][2] != PieceType.Empty
 
         return top or middle or bottom or left or center or right or TLBRDiag or BLTRDiag
@@ -132,11 +172,11 @@ class TicTacToeLib:
     def grade_state(self, node, piece, depth):
         # if a win
         if self.check_win(node.board):
-            # if the player won, the ai grades the state as a loss
-            if self.player == piece:
-                return -10
-            # if the ai is the winner, grade the state as a win
-            return 10
+            # if the updated piece was the current players piece, it is a win
+            if node.updated_piece == piece:
+                return 10
+            # if the updated piece was the other players piece, it is a loss
+            return -10
         # its a draw
         return 0
 
@@ -158,13 +198,13 @@ class TicTacToeLib:
             outNode.children.append(node)
         return outNode
 
-    def alpha_beta_minmax(self, node, maximizing_player, depthScore, alpha = -10000, beta = 10000):
+    def alpha_beta_minmax(self, node, current_piece, maximizing_player, depthScore, alpha = -10000, beta = 10000):
         if len(node.children) == 0:
-            return self.grade_state(node, node.updated_piece, depthScore)
+            return self.grade_state(node, current_piece, depthScore)
         if maximizing_player:
             best_value = -10000
             for child in node.children:
-                grade = self.alpha_beta_minmax(child, False, depthScore - 1, alpha, beta)
+                grade = self.alpha_beta_minmax(child, current_piece, False, depthScore - 1, alpha, beta)
                 best_value = max(best_value, grade)
                 alpha = max(alpha, best_value)
                 if beta <= alpha:
@@ -173,22 +213,29 @@ class TicTacToeLib:
         else:
             best_value = 10000
             for child in node.children:
-                grade = self.alpha_beta_minmax(child, True, depthScore - 1, alpha, beta)
+                grade = self.alpha_beta_minmax(child, current_piece, True, depthScore - 1, alpha, beta)
                 best_value = min(best_value, grade)
                 beta = min(beta, best_value)
                 if beta <= alpha:
                     break
             return best_value
 
-    def Ai(self, board, depth):
-        tree = self.generate_move_tree(board, self.player, depth)
+    def Ai(self, board, piece, depth):
+        tree = self.generate_move_tree(board, self.invert_piece(piece), depth)
         for child in tree.children:
-            child.value = self.alpha_beta_minmax(child, False, depth)
+            child.value = self.alpha_beta_minmax(child, piece, False, depth)
 
         max_score = -10000
         index = -1
+        # get the overall max
         for i in range(len(tree.children)):
             if tree.children[i].value > max_score:
                 index = i
                 max_score = tree.children[i].value
-        return tree.children[index].board
+        indices = []
+        # get all states that are of equal opportunity to the best
+        for i in range(len(tree.children)):
+            if tree.children[i].value >= max_score:
+                indices.append(i)
+
+        return tree.children[random.choice(indices)].board
