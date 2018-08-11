@@ -10,6 +10,7 @@ if __name__ == '__main__':
     print('Please choose a game option:')
     print('1)Human vs Human')
     print('2)Human Vs Computer')
+    print('3)Computer Vs Computer')
     game_mode = int(input())
 
     piece = input('Enter the piece you want to play: \"x\" or \"o\"')
@@ -21,7 +22,11 @@ if __name__ == '__main__':
     if game_mode == 1:
         lib.HumanVsHuman(player)
         exit()
-    lib.HumanVsComputer(player, ai_max_depth)
+    if game_mode == 2:
+        lib.HumanVsComputer(player, ai_max_depth)
+    if game_mode == 3:
+        lib.ComputerVsComputer(player, ai_max_depth)
+
     input('Preventing window close...')
 
 
