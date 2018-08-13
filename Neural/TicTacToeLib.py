@@ -1,12 +1,14 @@
 from Constants import PieceType, bcolors
 from Node import Node
-import  random
-import os
+import random
+from itertools import chain
+import pickle
 
 
 class TicTacToeLib:
     player = PieceType.Empty
 
+    # <editor-fold desc="Play Styles">
     def HumanVsHuman(self, player_piece):
         self.player = player_piece
         current_piece = self.player
@@ -109,9 +111,90 @@ class TicTacToeLib:
                 self.print_board(board)
                 continue
 
+    def ComputerVsComputer_Save(self, player_piece, depth):
+        self.player = player_piece
+
+        printing = False
+
+        board = self.create_empty_board()
+        if printing:
+            self.print_board(board)
+
+        col = 0
+        uniques = set()
+        all = list()
+
+        while len(uniques) < 10000:
+            initial_board = board
+
+            board = self.Ai(board, self.player, depth)
+            if printing:
+                print('Ai 1 Move:')
+                self.print_board(board)
+
+            # save some processing cycles by only computing once
+            fib = self.flatten_board(initial_board)
+            fb = self.flatten_board(board)
+
+            uniques.add((fib, fb))
+            all.append((fib, fb))
+
+            if self.check_win(board):
+                print('Ai 1 won!')
+                board = self.create_empty_board()
+                # return uniques, all
+                continue
+
+            if not self.board_has_moves(board):
+                board = self.create_empty_board()
+                if printing:
+                    self.print_board(board)
+                    print('Board Full, restarting..')
+                continue
+            initial_board = board
+            board = self.Ai(board, self.invert_piece(self.player), depth)
+            if printing:
+                print('Ai 2 Move:')
+                self.print_board(board)
+
+            # want to have all training data representing the same "start player"
+            # get 2x data by using ai1 and ai2 inverted to be like ai1
+            # save some processing cycles by only computing once
+            fib = self.sanitize_board(self.flatten_board(initial_board))
+            fb = self.sanitize_board(self.flatten_board(board))
+            uniques.add((fib, fb))
+            all.append((fib, fb))
+
+            if self.check_win(board):
+                print('Ai 2 won!')
+                board = self.create_empty_board()
+                # return uniques, all
+                continue
+
+            if not self.board_has_moves(board):
+                board = self.create_empty_board()
+                if printing:
+                    self.print_board(board)
+                    print('Board Full, restarting..')
+                continue
+            if len(uniques) % 10 is 0:
+                print("Unique len: {0}".format(len(uniques)))
+                print("All len: {0}".format(len(all)))
+            if len(uniques) % 100 is 0:
+                self.save_data(uniques, 'uniques{0}.pkl'.format(len(uniques)))
+                self.save_data(all, 'all{0}.pkl'.format(len(all)))
+
+    # </editor-fold>
+
     def invert_piece(self, piece):
         return PieceType.X if (piece == PieceType.O) else PieceType.O
 
+    def save_data(self, item, filename):
+        output = open(filename, 'wb')
+        pickle.dump(item, output)
+        output.close()
+
+    # <editor-fold desc="Board Operations">
     def check_win(self, board):
         top = (board[0][0] == board[0][1]) and (board[0][1] == board[0][2]) and board[0][2] != PieceType.Empty
         middle = board[1][0] == board[1][1] and board[1][1] == board[1][2] and board[1][2] != PieceType.Empty
@@ -126,7 +209,6 @@ class TicTacToeLib:
 
         return top or middle or bottom or left or center or right or TLBRDiag or BLTRDiag
 
-    # board operations
     def print_board(self, board):
         for r in range(len(board)):
             line_string = ''
@@ -169,6 +251,23 @@ class TicTacToeLib:
                     return True
         return False
 
+    def flatten_board(self, board):
+        flat = tuple(chain.from_iterable(board))
+        sanitized = []
+        for elem in flat:
+            if elem is PieceType.X:
+                sanitized.append(1)
+            elif elem is PieceType.O:
+                sanitized.append(-1)
+            else:
+                sanitized.append(0)
+        return tuple(sanitized)
+
+    def sanitize_board(self, board):
+        return tuple(-x if x is not 0 else x for x in board)
+    # </editor-fold>
+
+    # <editor-fold desc="AI">
     def grade_state(self, node, piece, depth):
         # if a win
         if self.check_win(node.board):
@@ -239,3 +338,6 @@ class TicTacToeLib:
                 indices.append(i)
 
         return tree.children[random.choice(indices)].board
+
+    # </editor-fold>
+
