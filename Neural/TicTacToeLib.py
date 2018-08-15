@@ -184,6 +184,70 @@ class TicTacToeLib:
                 self.save_data(uniques, 'uniques{0}.pkl'.format(len(uniques)))
                 self.save_data(all, 'all{0}.pkl'.format(len(all)))
 
+    def ComputerVsDumbComputer_Save(self, player_piece, depth):
+        self.player = player_piece
+
+        printing = False
+
+        board = self.create_empty_board()
+        if printing:
+            self.print_board(board)
+
+        uniques = set()
+        all = list()
+
+        while len(uniques) < 10000:
+            initial_board = board
+
+            board = self.Ai(board, self.player, depth)
+            if printing:
+                print('Ai 1 Move:')
+                self.print_board(board)
+
+            # save some processing cycles by only computing once
+            fib = self.flatten_board(initial_board)
+            fb = self.flatten_board(board)
+
+            uniques.add((fib, fb))
+            all.append((fib, fb))
+
+            if self.check_win(board):
+                print('Ai 1 won!')
+                board = self.create_empty_board()
+                # return uniques, all
+                continue
+
+            if not self.board_has_moves(board):
+                board = self.create_empty_board()
+                if printing:
+                    self.print_board(board)
+                    print('Board Full, restarting..')
+                continue
+
+            board = self.DumbAi(board, self.invert_piece(self.player), depth)
+            if printing:
+                print('Ai 2 Move:')
+                self.print_board(board)
+
+            if self.check_win(board):
+                print('Ai 2 won!')
+                board = self.create_empty_board()
+                # return uniques, all
+                continue
+
+            if not self.board_has_moves(board):
+                board = self.create_empty_board()
+                if printing:
+                    self.print_board(board)
+                    print('Board Full, restarting..')
+                continue
+            if len(uniques) % 10 is 0:
+                print("Unique len: {0}".format(len(uniques)))
+                print("All len: {0}".format(len(all)))
+            if len(uniques) % 100 is 0:
+                self.save_data(uniques, 'new_uniques{0}.pkl'.format(len(uniques)))
+                self.save_data(all, 'new_all{0}.pkl'.format(len(all)))
+
     # </editor-fold>
 
     def invert_piece(self, piece):
@@ -338,6 +402,18 @@ class TicTacToeLib:
                 indices.append(i)
 
         return tree.children[random.choice(indices)].board
+
+    def DumbAi(self, board, piece, depth):
+
+        moves = self.get_available_moves(board)
+
+        ind = random.choice(moves)
+
+        b = self.copy_board(board)
+
+        b[ind[0]][ind[1]] = piece
+
+        return b
 
     # </editor-fold>
 
