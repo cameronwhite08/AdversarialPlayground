@@ -245,8 +245,8 @@ class TicTacToeLib:
                 print("Unique len: {0}".format(len(uniques)))
                 print("All len: {0}".format(len(all)))
             if len(uniques) % 100 is 0:
-                self.save_data(uniques, 'new_uniques{0}.pkl'.format(len(uniques)))
-                self.save_data(all, 'new_all{0}.pkl'.format(len(all)))
+                self.save_data(uniques, 'Pickles/new_uniques{0}.pkl'.format(len(uniques)))
+                self.save_data(all, 'Pickles/new_all{0}.pkl'.format(len(all)))
 
     # </editor-fold>
 
