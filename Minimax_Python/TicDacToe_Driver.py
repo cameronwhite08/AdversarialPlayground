@@ -12,6 +12,7 @@ if __name__ == '__main__':
     print('3)Computer Vs Computer')
     print('4)Computer Vs Computer (Saving the states)')
     print('5)Computer Vs Dumb Computer (Saving the states)')
+    print('6)Computer Vs Neural Net')
     game_mode = int(input())
 
     piece = input('Enter the piece you want to play: \"x\" or \"o\"')
@@ -31,6 +32,8 @@ if __name__ == '__main__':
             lib.ComputerVsComputer_Save(player, ai_max_depth)
         if game_mode == 5:
             lib.ComputerVsDumbComputer_Save(player, ai_max_depth)
+        if game_mode == 6:
+            lib.HumanVsAIComputer(player)
 
 
 

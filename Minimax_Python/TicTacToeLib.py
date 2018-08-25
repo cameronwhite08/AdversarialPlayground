@@ -3,9 +3,15 @@ from Node import Node
 import random
 from itertools import chain
 import pickle
-
+import numpy as np
+import keras
 
 class TicTacToeLib:
+
+    def __init__(self):
+        self.neural_net = keras.models.load_model('models/tictacModel2018825_18_1_83p')
+        print(self.neural_net.summary())
+
     player = PieceType.Empty
 
     # <editor-fold desc="Play Styles">
@@ -61,6 +67,46 @@ class TicTacToeLib:
                 continue
 
             board = self.Ai(board, self.invert_piece(self.player), depth)
+            print('Ai Move:')
+            self.print_board(board)
+
+            if self.check_win(board):
+                print('The PC won!')
+                return
+
+            if not self.board_has_moves(board):
+                print('Board Full, restarting..')
+                board = self.create_empty_board()
+                self.print_board(board)
+                continue
+
+    def HumanVsAIComputer(self, player_piece):
+        self.player = player_piece
+
+        board = self.create_empty_board()
+        self.print_board(board)
+        col = 0
+        row = 0
+
+        while col != -1:
+            row = int(input('Enter the row you want to place a piece'))
+            col = int(input('Enter the col you want to place a piece (-1 to exit)'))
+
+            board[row][col] = self.player
+
+            self.print_board(board)
+
+            if self.check_win(board):
+                print('You won!')
+                return
+
+            if not self.board_has_moves(board):
+                print('Board Full, restarting..')
+                board = self.create_empty_board()
+                self.print_board(board)
+                continue
+
+            board = self.neural_ai(board, self.invert_piece(self.player))
             print('Ai Move:')
             self.print_board(board)
 
@@ -196,25 +242,22 @@ class TicTacToeLib:
         uniques = set()
         all = list()
 
-        while len(uniques) < 10000:
-            initial_board = board
+        steps = 0
 
-            board = self.Ai(board, self.player, depth)
+        while True:
+            steps += 1
+            board, ai_states = self.Ai_gen_states(board, self.player, depth)
             if printing:
                 print('Ai 1 Move:')
                 self.print_board(board)
 
-            # save some processing cycles by only computing once
-            fib = self.flatten_board(initial_board)
-            fb = self.flatten_board(board)
-
-            uniques.add((fib, fb))
-            all.append((fib, fb))
+            for state in ai_states:
+                uniques.add((state[0], state[1]))
+                all.append((state[0], state[1]))
 
             if self.check_win(board):
                 print('Ai 1 won!')
                 board = self.create_empty_board()
-                # return uniques, all
                 continue
 
             if not self.board_has_moves(board):
@@ -224,7 +267,7 @@ class TicTacToeLib:
                     print('Board Full, restarting..')
                 continue
 
-            board = self.DumbAi(board, self.invert_piece(self.player), depth)
+            board = self.RandomAi(board, self.invert_piece(self.player), depth)
             if printing:
                 print('Ai 2 Move:')
                 self.print_board(board)
@@ -241,12 +284,15 @@ class TicTacToeLib:
                     self.print_board(board)
                     print('Board Full, restarting..')
                 continue
-            if len(uniques) % 10 is 0:
+            if steps % 4 is 0:
                 print("Unique len: {0}".format(len(uniques)))
                 print("All len: {0}".format(len(all)))
-            if len(uniques) % 100 is 0:
-                self.save_data(uniques, 'Pickles/new_uniques{0}.pkl'.format(len(uniques)))
-                self.save_data(all, 'Pickles/new_all{0}.pkl'.format(len(all)))
+                print("Steps: " + str(steps))
+            if steps > 100:
+                print("Board saved.")
+                self.save_data(uniques, 'Pickles/full_state_choice_uniques{0}.pkl'.format(len(uniques)))
+                self.save_data(all, 'Pickles/full_state_choice_all{0}.pkl'.format(len(all)))
+                steps = 0
 
     # </editor-fold>
 
@@ -403,7 +449,7 @@ class TicTacToeLib:
 
         return tree.children[random.choice(indices)].board
 
-    def DumbAi(self, board, piece, depth):
+    def RandomAi(self, board, piece, depth):
 
         moves = self.get_available_moves(board)
 
@@ -414,6 +460,80 @@ class TicTacToeLib:
         b[ind[0]][ind[1]] = piece
 
         return b
+
+    def neural_ai(self, board, piece):
+        moves = self.get_available_moves(board)
+
+        flat_board = self.flatten_board(board)
+
+        prob = 0.0
+        new_board = []
+
+        for ind in moves:
+            t_board = self.copy_board(board)
+
+            t_board[ind[0]][ind[1]] = piece
+
+            inputs = flat_board + self.flatten_board(t_board)
+
+            np_inputs = np.array([inputs])
+
+            print(np_inputs.shape)
+
+            output = self.neural_net.predict_proba(np_inputs)
+
+            output = float(output)
+
+            if output > prob:
+                prob = output
+                new_board = t_board
+
+        return new_board
+
+    def Ai_gen_states(self, board, piece, depth):
+        tree = self.generate_move_tree(board, self.invert_piece(piece), depth)
+        for child in tree.children:
+            child.value = self.alpha_beta_minmax(child, piece, False, depth)
+
+        max_score = -10000
+        # get the overall max
+        for i in range(len(tree.children)):
+            if tree.children[i].value > max_score:
+                max_score = tree.children[i].value
+        good_indices = []
+        bad_indices = []
+        # get all states that are of equal opportunity to the best
+        for i in range(len(tree.children)):
+            if tree.children[i].value >= max_score:
+                good_indices.append(i)
+            else:
+                bad_indices.append(i)
+
+        outStates = []
+        this_board = self.flatten_board(board)
+        for i in good_indices:
+            move_board = self.flatten_board(tree.children[i].board)
+
+            outStates.append(
+                (
+                    this_board +    # start start
+                    move_board,     # end state
+                    1               # if the state was desirable or not
+                )
+            )
+        for i in bad_indices:
+            move_board = self.flatten_board(tree.children[i].board)
+
+            outStates.append(
+                (
+                    this_board +    # start start
+                    move_board,     # end state
+                    0               # if the state was desirable or not
+                )
+            )
+
+        # return tree.children[random.choice(indices)].board
+        return tree.children[random.choice(good_indices)].board, outStates
 
     # </editor-fold>
 
