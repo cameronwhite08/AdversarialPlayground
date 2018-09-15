@@ -269,6 +269,12 @@ namespace MiniMax_TicTacToe_Lib
 
         }
 
+        public PieceType[][] AI(PieceType[][] board, PieceType playerPiece, int depth)
+        {
+            Player = playerPiece;
+            return AI(board, depth);
+        }
+
         public PieceType[][] AI(PieceType[][] board, int depth)
         {
             var tree = GenerateMoveTree(board, Player, depth);

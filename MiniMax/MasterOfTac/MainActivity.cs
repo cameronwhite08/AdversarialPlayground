@@ -23,7 +23,7 @@ namespace MasterOfTac
 			base.OnCreate(savedInstanceState);
 
             
-		    lib = new TicTacToeLib(PieceType.X);
+		    lib = new TicTacToeLib();
 
 		    currentBoard = lib.CreateEmptyBoard();
 
